@@ -14,31 +14,23 @@ export default async function bookCreate(req, res) {
   });
 
   // Update author
-  const promises = req.body.author.map((author) => {
-    Author.findById(author)
+  const promises = authors.map(async (author) => {
+    await Author.findById(author)
       .exec()
       .then((doc) => {
-        if (!doc) {
-          newBook.author = authors.filter((el) => el !== author);
+        if (doc) {
+          doc.book = [...doc.book, _id];
+          doc.save().catch((err) => {
+            console.log(err);
+            newBook.author = authors.filter((el) => el !== author);
+          });
         } else {
-          Author.findOneAndUpdate({ _id: author }, { $addToSet: { book: _id } })
-            .exec()
-            .then(() => {
-              console.log('author updated');
-            })
-            .catch(() => {
-              console.log('author not updated');
-            });
-          // doc.book = [...doc.book, _id];
-          // doc.save().catch((err) => {
-          //   console.log('error catch', err);
-          // });
+          newBook.author = authors.filter((el) => el !== author);
         }
       })
       .catch((err) => {
         console.log(err);
         newBook.author = authors.filter((el) => el !== author);
-        // res.status(400).json('Author not updated');
       });
   });
   // req.body.author.forEach((author) => {

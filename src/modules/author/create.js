@@ -4,29 +4,29 @@ import Book from '../book/Model';
 
 export default async function authorCreate(req, res) {
   const _id = new mongoose.Types.ObjectId();
-  const { name } = req.body;
+  const { name, book } = req.body;
 
   const newAuthor = new Author({
     _id,
     name,
-    book: req.body.book,
+    book,
   });
 
-  const promises = req.body.book.map(async (book) => {
-    Book.findById(book)
+  const promises = book.map(async (book) => {
+   await Book.findById(book)
       .exec()
       .then((doc) => {
         if (!doc) {
           newAuthor.book = req.body.book.filter((el) => el !== book);
         } else {
-          Book.findOneAndUpdate({ _id: book }, { $addToSet: { author: _id } })
+          Book.updateOne({ _id: book }, { $addToSet: { author: _id } })
             .exec()
             .then(() => {
-              console.log('result');
+              return console.log('result');
+
             })
             .catch((err) => {
-              console.log('error', err);
-              newAuthor.book = req.body.book.filter((el) => el !== book);
+              return console.log('error', err);
             });
 
           // doc.author = [...doc.author, _id];
@@ -41,7 +41,9 @@ export default async function authorCreate(req, res) {
       });
   });
 
+  console.log('Promises', promises);
   await Promise.all(promises);
+  console.log(newAuthor.book);
 
   newAuthor
     .save()
