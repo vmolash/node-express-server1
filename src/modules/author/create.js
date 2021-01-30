@@ -13,20 +13,20 @@ export default async function authorCreate(req, res) {
   });
 
   const promises = book.map(async (book) => {
-   await Book.findById(book)
+    await Book.findById(book)
       .exec()
       .then((doc) => {
         if (!doc) {
           newAuthor.book = req.body.book.filter((el) => el !== book);
         } else {
-          Book.updateOne({ _id: book }, { $addToSet: { author: _id } })
+          Book.findOneAndUpdate({ _id: book }, { $addToSet: { author: _id } })
             .exec()
             .then(() => {
-              return console.log('result');
-
+              console.log('result');
             })
             .catch((err) => {
-              return console.log('error', err);
+              console.log('error', err);
+              newAuthor.book = req.body.book.filter((el) => el !== book);
             });
 
           // doc.author = [...doc.author, _id];
